@@ -113,6 +113,7 @@ namespace DraughtsGameV2
                                     if (!isOccupied(xCord - 2, yCord + 2))
                                     {
                                         ExecuteMove(xCord, yCord, -1, 1, out xDest, out yDest);
+                                        DeactivateGamePiece(xCord - 1, yCord + 1);
                                     }
                                 }
                                 else if (!isOccupied(xCord - 1, yCord + 1))
@@ -127,6 +128,7 @@ namespace DraughtsGameV2
                                     if (!isOccupied(xCord + 2, yCord + 2))
                                     {
                                         ExecuteMove(xCord, yCord, 1, 1, out xDest, out yDest);
+                                        DeactivateGamePiece(xCord + 1, yCord + 1);
                                     }
                                 }
                                 else if (!isOccupied(xCord + 1, yCord + 1))
@@ -141,6 +143,7 @@ namespace DraughtsGameV2
                                     if (!isOccupied(xCord - 2, yCord - 2))
                                     {
                                         ExecuteMove(xCord, yCord, -1, -1, out xDest, out yDest);
+                                        DeactivateGamePiece(xCord - 1, yCord - 1);
 
                                     }
                                 }
@@ -156,6 +159,7 @@ namespace DraughtsGameV2
                                     if (!isOccupied(xCord + 2, yCord - 2))
                                     {
                                         ExecuteMove(xCord, yCord, 1, -1, out xDest, out yDest);
+                                        DeactivateGamePiece(xCord + 1, yCord - 1);
 
                                     }
                                 }
@@ -260,7 +264,7 @@ namespace DraughtsGameV2
             xDest = xCord + xModifier;
             yDest = yCord + yModifier;
             Debug.WriteLine($"piece Cords is {xCord} {yCord} and its destination is {xDest} {yDest}");
-            DeactivateGamePiece(xCord + xModifier / 2, yCord + yModifier / 2);
+            
 
             Score += 1;
         }
