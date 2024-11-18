@@ -1,4 +1,5 @@
-﻿using DraughtsGameV2.UI;
+﻿using DraughtsGameV2;
+using DraughtsGameV2.UI;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,14 +9,17 @@ using System.Threading.Tasks;
 
 namespace DraughtsGameV2
 {
-    class Player
+    public class Player
     {
         public int Score = 0;
         public int PlayerNumber;
         public GamePiece[] Piece = new GamePiece[12];
-
-        public Player(int playerNumber) 
+        public UIManager UIManager;
+        //
+        public Player(int playerNumber, UIManager uIManager)
         {
+            UIManager = uIManager;
+
             if (playerNumber == 1)
             {
                 int posX = 0;
@@ -46,7 +50,7 @@ namespace DraughtsGameV2
                     }
                 }
             }
-            else if (playerNumber == 2) 
+            else if (playerNumber == 2)
             {
                 int posX = 1;
                 int posY = 0;
@@ -83,121 +87,289 @@ namespace DraughtsGameV2
             int xDest = -1;
             int yDest = -1;
             bool isValidMove = false;
-            int direction = 0;
-
-            while (!isValidMove)
-            {
-                do
+            
+            
+                while (!isValidMove)
                 {
-                    Console.SetCursorPosition(1, 20);
-                    Console.Write($"PLAYER {playerNumber}: What piece would you like to move:         ");
-                    Input.GetCoordinates(out xCord, out yCord);
-
-                } while (!(isOccupied(xCord, yCord) && ReturnPlayerNumber(xCord, yCord) == playerNumber));
+                    bool mustExecute = CanCaptureOpponent(playerNumber, out int playerThatMustMove);
+                    Debug.WriteLine($"Can Capture opponent has returned as {CanCaptureOpponent(playerNumber, out playerThatMustMove)} with the player being {playerThatMustMove}");
 
 
-                Console.SetCursorPosition(1, 20);
-                Console.Write($"PLAYER {playerNumber}: Where would you like to move to:          ");
-                direction = Input.MoveToPos();
-
-
-                foreach (GamePiece piece in GamePiece.AllGamePieces)
-                {
-                    if ((piece.posX == xCord) && (piece.posY == yCord))
+                    do
                     {
-                        switch (direction)
+                        if (mustExecute)
                         {
-                            case 1:
-                                if ((isOccupied(xCord - 1, yCord + 1)) && (ReturnPlayerNumber(xCord - 1, yCord + 1) != PlayerNumber))
-                                {
-                                    if (!isOccupied(xCord - 2, yCord + 2))
-                                    {
-                                        ExecuteMove(xCord, yCord, -1, 1, out xDest, out yDest);
-                                        DeactivateGamePiece(xCord - 1, yCord + 1);
-                                    }
-                                }
-                                else if (!isOccupied(xCord - 1, yCord + 1))
-                                {
-                                    xDest = xCord - 1;
-                                    yDest = yCord + 1;
-                                }
-                                break;
-                            case 3:
-                                if ((isOccupied(xCord + 1, yCord + 1)) && (ReturnPlayerNumber(xCord + 1, yCord + 1) != PlayerNumber))
-                                {
-                                    if (!isOccupied(xCord + 2, yCord + 2))
-                                    {
-                                        ExecuteMove(xCord, yCord, 1, 1, out xDest, out yDest);
-                                        DeactivateGamePiece(xCord + 1, yCord + 1);
-                                    }
-                                }
-                                else if (!isOccupied(xCord + 1, yCord + 1))
-                                {
-                                    xDest = xCord + 1;
-                                    yDest = yCord + 1;
-                                }
-                                break;
-                            case 7:
-                                if ((isOccupied(xCord - 1, yCord - 1)) && (ReturnPlayerNumber(xCord - 1, yCord - 1) != PlayerNumber))
-                                {
-                                    if (!isOccupied(xCord - 2, yCord - 2))
-                                    {
-                                        ExecuteMove(xCord, yCord, -1, -1, out xDest, out yDest);
-                                        DeactivateGamePiece(xCord - 1, yCord - 1);
-
-                                    }
-                                }
-                                else if (!isOccupied(xCord - 1, yCord - 1))
-                                {
-                                    xDest = xCord - 1;
-                                    yDest = yCord - 1;
-                                }
-                                break;
-                            case 9:
-                                if ((isOccupied(xCord + 1, yCord - 1)) && (ReturnPlayerNumber(xCord + 1, yCord - 1) != PlayerNumber))
-                                {
-                                    if (!isOccupied(xCord + 2, yCord - 2))
-                                    {
-                                        ExecuteMove(xCord, yCord, 1, -1, out xDest, out yDest);
-                                        DeactivateGamePiece(xCord + 1, yCord - 1);
-
-                                    }
-                                }
-                                else if (!isOccupied(xCord + 1, yCord - 1))
-                                {
-                                    xDest = xCord + 1;
-                                    yDest = yCord - 1;
-                                }
-                                break;
-                            default:
-                                xDest = xCord;
-                                yDest = yCord;
-                                break;
+                            do
+                            {
+                                UIManager.DisplayDialog1(playerNumber);
+                                UIManager.GetCoordinates(out xCord, out yCord);
+                                if (ThisPieceCanCapture(xCord, yCord, playerNumber))
+                                    break;
+                                UIManager.YouMustExecuteTheOpponentsPieceDialog();
+                                Debug.WriteLine($"xCord is: {xCord}. must moves xCord is {this.Piece[playerThatMustMove].posX}. yCord is: {yCord}. must moves yCord is {Piece[playerThatMustMove].posY}.  ");
+                            }
+                            while (ThisPieceCanCapture(xCord, yCord, playerNumber) == false);
+                        }
+                        else
+                        {
+                            UIManager.DisplayDialog1(playerNumber);
+                            UIManager.GetCoordinates(out xCord, out yCord);
                         }
 
+
+                    } while (!(IsOccupied(xCord, yCord) && ReturnPlayerNumber(xCord, yCord) == playerNumber));
+
+                    CheckIfAdjacentToOpponent(playerNumber, xCord, yCord, out bool enemyTL, out bool enemyTR, out bool enemyBL, out bool enemyBR);
+
+                    UIManager.DisplayDialog2(playerNumber);
+                    int direction = UIManager.MoveToPos();
+
+                    foreach (GamePiece piece in GamePiece.AllGamePieces)
+                    {
+                        // NON KING MOVES
+                                //Player 1
+                        if ((piece.posX == xCord) && (piece.posY == yCord) && (piece.isKing == false) & (mustExecute == true) && playerNumber == 1)
+                        {
+                            switch (direction)
+                            {
+                                case 7:
+                                    if (enemyTL)
+                                    {
+                                        if (!IsOccupied(xCord - 2, yCord - 2) && IsOccupied(xCord - 1, yCord - 1))
+                                        {
+                                            ExecuteMove(xCord, yCord, -1, -1, out xDest, out yDest);
+                                            DeactivateGamePiece(xCord - 1, yCord - 1);
+                                        }
+                                        else
+                                            UIManager.YouMustExecuteTheOpponentsPieceDialog();
+                                    }
+
+                                    break;
+
+                                case 9:
+                                    if (enemyTR)
+                                    {
+                                        if (!IsOccupied(xCord + 2, yCord - 2) && IsOccupied(xCord + 1, yCord - 1))
+                                        {
+                                            ExecuteMove(xCord, yCord, 1, -1, out xDest, out yDest);
+                                        }
+                                        else
+                                            UIManager.YouMustExecuteTheOpponentsPieceDialog();
+                                    }
+                                    break;
+
+                                default:
+                                    xDest = xCord;
+                                    yDest = yCord;
+                                    break;
+                            }
+                        }
+                        else if ((piece.posX == xCord) && (piece.posY == yCord) && (piece.isKing == false) & (mustExecute == false && playerNumber == 1))
+                        {
+                            switch (direction)
+                            {
+                            case 7:
+                                if (!IsOccupied(xCord - 1, yCord - 1))
+                                {
+                                    xDest = xCord - 1;
+                                    yDest = yCord - 1;
+                                }
+                                break;
+
+                            case 9:
+                                if (!IsOccupied(xCord + 1, yCord - 1))
+                                {
+                                    xDest = xCord + 1;
+                                    yDest = yCord - 1;
+                                }
+                                break;
+                        }
+                    }
+                                //Player 2
+                        if ((piece.posX == xCord) && (piece.posY == yCord) && (piece.isKing == false) & (mustExecute == true) && playerNumber == 2)
+                        {
+                            switch (direction)
+                            {
+                                case 1:
+                                    if (enemyBL)
+                                    {
+                                        if (!IsOccupied(xCord - 2, yCord + 2) && IsOccupied(xCord - 1, yCord + 1))
+                                        {
+                                            ExecuteMove(xCord, yCord, -1, +1, out xDest, out yDest);
+                                            DeactivateGamePiece(xCord - 1, yCord + 1);
+                                        }
+                                        else
+                                            UIManager.YouMustExecuteTheOpponentsPieceDialog();
+                                    }
+
+                                    break;
+
+                                case 3:
+                                    if (enemyBR)
+                                    {
+                                        if (!IsOccupied(xCord + 2, yCord + 2) && IsOccupied(xCord + 1, yCord + 1))
+                                        {
+                                            ExecuteMove(xCord, yCord, 1, 1, out xDest, out yDest);
+                                        }
+                                        else
+                                            UIManager.YouMustExecuteTheOpponentsPieceDialog();
+                                    }
+                                    break;
+
+                                default:
+                                    xDest = xCord;
+                                    yDest = yCord;
+                                    break;
+                            }
+                        }
+                        else if ((piece.posX == xCord) && (piece.posY == yCord) && (piece.isKing == false) & (mustExecute == false && playerNumber == 2))
+                            {
+                                switch (direction)
+                                {
+                                    case 1:
+                                        if (!IsOccupied(xCord - 1, yCord + 1))
+                                        {
+                                            xDest = xCord - 1;
+                                            yDest = yCord + 1;
+
+                                        }
+                                        break;
+                                    case 3:
+                                        if (!IsOccupied(xCord + 1, yCord + 1))
+                                        {
+                                            xDest = xCord + 1;
+                                            yDest = yCord + 1;
+                                        }
+                                        break;
+                                }
+                            }
+
+                        // KING MOVES
+                        if ((piece.posX == xCord) && (piece.posY == yCord) && (piece.isKing == true) & (mustExecute == true))
+                        {
+                            switch (direction)
+                            {
+                                case 1:
+                                    if (enemyBL)
+                                    {
+                                        if (!IsOccupied(xCord - 2, yCord + 2) && IsOccupied(xCord - 1, yCord + 1))
+                                        {
+                                            ExecuteMove(xCord, yCord, -1, 1, out xDest, out yDest);
+                                        }
+                                    }
+                                    else
+                                        UIManager.YouMustExecuteTheOpponentsPieceDialog();
+                                    break;
+
+                                case 3:
+                                    if (enemyBR)
+                                    {
+                                        if (!IsOccupied(xCord + 2, yCord + 2) && IsOccupied(xCord + 1, yCord + 1))
+                                        {
+                                            ExecuteMove(xCord, yCord, 1, 1, out xDest, out yDest);
+                                        }
+                                        else
+                                            UIManager.YouMustExecuteTheOpponentsPieceDialog();
+                                    }
+
+                                    break;
+
+                                case 7:
+                                    if (enemyTL)
+                                    {
+                                        if (!IsOccupied(xCord - 2, yCord - 2) && IsOccupied(xCord - 1, yCord - 1))
+                                        {
+                                            ExecuteMove(xCord, yCord, -1, -1, out xDest, out yDest);
+                                            DeactivateGamePiece(xCord - 1, yCord - 1);
+                                        }
+                                        else
+                                            UIManager.YouMustExecuteTheOpponentsPieceDialog();
+                                    }
+
+                                    break;
+
+                                case 9:
+                                    if (enemyTR)
+                                    {
+                                        if (!IsOccupied(xCord + 2, yCord - 2) && IsOccupied(xCord + 1, yCord - 1))
+                                        {
+                                            ExecuteMove(xCord, yCord, 1, -1, out xDest, out yDest);
+                                        }
+                                        else
+                                            UIManager.YouMustExecuteTheOpponentsPieceDialog();
+                                    }
+                                    break;
+
+                                default:
+                                    xDest = xCord;
+                                    yDest = yCord;
+                                    break;
+                            }
+                        }
+                        else if ((piece.posX == xCord) && (piece.posY == yCord) && (piece.isKing == true) & (mustExecute == false))
+                        {
+                            switch (direction)
+                            {
+                                case 1:
+                                    if (!IsOccupied(xCord - 1, yCord + 1))
+                                    {
+                                        xDest = xCord - 1;
+                                        yDest = yCord + 1;
+
+                                    }
+                                    break;
+                                case 3:
+                                    if (!IsOccupied(xCord + 1, yCord + 1))
+                                    {
+                                        xDest = xCord + 1;
+                                        yDest = yCord + 1;
+                                    }
+                                    break;
+
+                                case 7:
+                                    if (!IsOccupied(xCord - 1, yCord - 1))
+                                    {
+                                        xDest = xCord - 1;
+                                        yDest = yCord - 1;
+                                    }
+                                    break;
+
+                                case 9:
+                                    if (!IsOccupied(xCord + 1, yCord - 1))
+                                    {
+                                        xDest = xCord + 1;
+                                        yDest = yCord - 1;
+                                    }
+                                    break;
+
+                                default:
+                                    xDest = xCord;
+                                    yDest = yCord;
+                                    break;
+                            }
+                        }
                         //Checking to see if the move was valid (if destination coordinates are still set to default (-1, -1) then move not valid
                         if (xDest != -1 && yDest != -1)
                         {
                             piece.posX = xDest;
                             piece.posY = yDest;
                             isValidMove = true;
+                            piece.CheckKing();
                             break;
                         }
                     }
-                }
-                if (!isValidMove)
-                {
-                    Console.SetCursorPosition(1, 22);
-                    Console.WriteLine("Please pick a valid coordinate");
-                    Thread.Sleep(1000);
-                    Console.SetCursorPosition(1, 22);
-                    Console.WriteLine("                                                 ");
-                    Console.SetCursorPosition(1, 21);
-                }
-            }
-        }
+                    
 
-        public int ReturnPlayerNumber(int xCord, int yCord)
+                    if (!isValidMove)
+                    {
+                        UIManager.PickValidCoordinateDialog();
+                    }
+                }
+           
+        }    
+        
+        //
+        private static int ReturnPlayerNumber(int xCord, int yCord)
         {
             foreach (GamePiece gamepiece in GamePiece.AllGamePieces)
             {
@@ -210,30 +382,14 @@ namespace DraughtsGameV2
             return -1;
         }
 
-        public int ReturnGamePieceNumber(int xCord, int yCord)
+        private static void DeactivateGamePiece(int xCord, int yCord)
         {
             {
                 foreach (GamePiece gamepiece in GamePiece.AllGamePieces)
                 {
                     if ((gamepiece.posY == yCord) && (gamepiece.posX == xCord))
                     {
-                        return gamepiece.arrayNumber;
-
-                    }
-                }
-                return -1;
-            }
-
-        }
-
-        public void DeactivateGamePiece(int xCord, int yCord)
-        {
-            {
-                foreach (GamePiece gamepiece in GamePiece.AllGamePieces)
-                {
-                    if ((gamepiece.posY == yCord) && (gamepiece.posX == xCord))
-                    {
-                         gamepiece.isActive = false;
+                        gamepiece.isActive = false;
 
                     }
                 }
@@ -241,11 +397,11 @@ namespace DraughtsGameV2
 
         }
 
-        public bool isOccupied(int xCord, int yCord)
+        private static bool IsOccupied(int xCord, int yCord)
         {
             foreach (GamePiece gamepiece in GamePiece.AllGamePieces)
             {
-                if ((gamepiece.posY == yCord) && (gamepiece.posX == xCord))
+                if ((gamepiece.posY == yCord) && (gamepiece.posX == xCord) && (gamepiece.isActive))
                 {
                     return true;
 
@@ -254,7 +410,7 @@ namespace DraughtsGameV2
             return false;
         }
 
-        public void ExecuteMove(int xCord, int yCord, int xMod, int yMod, out int xDest, out int yDest)
+        private void ExecuteMove(int xCord, int yCord, int xMod, int yMod, out int xDest, out int yDest)
         {
             int xModifier = 2;
             int yModifier = 2;
@@ -264,11 +420,163 @@ namespace DraughtsGameV2
             xDest = xCord + xModifier;
             yDest = yCord + yModifier;
             Debug.WriteLine($"piece Cords is {xCord} {yCord} and its destination is {xDest} {yDest}");
-            
 
+            DeactivateGamePiece(xCord + (xModifier / 2), yCord + (yModifier / 2));
             Score += 1;
         }
 
+        private static void CheckIfAdjacentToOpponent(int playerNumber, int xCord, int yCord, out bool enemyTL, out bool enemyTR, out bool enemyBL, out bool enemyBR)
+        {
+            enemyBL = false;
+            enemyBR = false;
+            enemyTL = false;
+            enemyTR = false;
+            {
+                foreach (GamePiece gamepiece in GamePiece.AllGamePieces)
+                {
+                    if (gamepiece.ownedBy != playerNumber)
+                    {
+                        if ((gamepiece.posX == xCord - 1) && (gamepiece.posY == yCord + 1) && IsOccupied(xCord - 1, yCord + 1)) enemyBL = true;
+
+                        if ((gamepiece.posX == xCord + 1) && (gamepiece.posY == yCord + 1) && IsOccupied(xCord + 1, yCord + 1)) enemyBR = true;
+
+                        if ((gamepiece.posX == xCord - 1) && (gamepiece.posY == yCord - 1) && IsOccupied(xCord - 1, yCord - 1)) enemyTL = true;
+
+                        if ((gamepiece.posX == xCord + 1) && (gamepiece.posY == yCord - 1) && IsOccupied(xCord + 1, yCord - 1)) enemyTR = true;
+                    }
+                }
+                Debug.WriteLine($"BL = {enemyBL} ; BR = {enemyBR} ; TL = {enemyTL} ; TR = {enemyTR} ");
+            }
+
+        }
+
+        public static bool CanCaptureOpponent(int playerNumber, out int playerArrayNumber)
+        {
+            playerArrayNumber = 0;
+            foreach (GamePiece playerGamePiece in GamePiece.AllGamePieces)
+            {
+                if (playerGamePiece.ownedBy == playerNumber && playerGamePiece.isActive)
+                {
+                    playerArrayNumber = playerGamePiece.arrayNumber;
+                    int xCord = playerGamePiece.posX;
+                    int yCord = playerGamePiece.posY;
+
+                    //IF NOT KING
+                    //Player 1
+                    if (playerGamePiece.isKing == false && playerGamePiece.ownedBy == 1)
+                    {
+                        foreach (GamePiece gamepiece in GamePiece.AllGamePieces)
+                        {
+                            if (gamepiece.ownedBy != playerNumber && gamepiece.isActive)
+                            {
+
+                                if ((gamepiece.posX == xCord - 1) && (gamepiece.posY == yCord - 1) && IsOccupied(xCord - 1, yCord - 1) && (xCord >= 2) && (yCord >= 2) && (!IsOccupied(xCord - 2, yCord - 2)))
+                                    return true;
+                                if ((gamepiece.posX == xCord + 1) && (gamepiece.posY == yCord - 1) && IsOccupied(xCord + 1, yCord - 1) && (xCord <= 5) && (yCord >= 2) && (!IsOccupied(xCord + 2, yCord - 2)))
+                                    return true;
+                            }
+                        }
+                    }
+                    //Player 2
+                    else if (playerGamePiece.isKing == false && playerGamePiece.ownedBy == 2)
+                    {
+                        foreach (GamePiece gamepiece in GamePiece.AllGamePieces)
+                        {
+                            if (gamepiece.ownedBy != playerNumber && gamepiece.isActive)
+                            {
+
+                                if ((gamepiece.posX == xCord - 1) && (gamepiece.posY == yCord + 1) && IsOccupied(xCord - 1, yCord + 1) && (xCord >= 2) && (yCord <= 5) && (!IsOccupied(xCord - 2, yCord + 2)))
+                                    return true;
+                                if ((gamepiece.posX == xCord + 1) && (gamepiece.posY == yCord + 1) && IsOccupied(xCord + 1, yCord + 1) && (xCord <= 5) && (yCord <= 5) && (!IsOccupied(xCord + 2, yCord + 2)))
+                                    return true;
+                            }
+                        }
+                    }
+
+                    //IF KING
+                    else if (playerGamePiece.isKing)
+                    {
+                        foreach (GamePiece gamepiece in GamePiece.AllGamePieces)
+                        {
+                            if (gamepiece.ownedBy != playerNumber && gamepiece.isActive)
+                            {
+                                if ((gamepiece.posX == xCord - 1) && (gamepiece.posY == yCord + 1) && IsOccupied(xCord - 1, yCord + 1) && (xCord >= 2) && (yCord <= 5) && (!IsOccupied(xCord - 2, yCord + 2)))
+                                    return true;
+                                if ((gamepiece.posX == xCord + 1) && (gamepiece.posY == yCord + 1) && IsOccupied(xCord + 1, yCord + 1) && (xCord <= 5) && (yCord <= 5) && (!IsOccupied(xCord + 2, yCord + 2)))
+                                    return true;
+                                if ((gamepiece.posX == xCord - 1) && (gamepiece.posY == yCord - 1) && IsOccupied(xCord - 1, yCord - 1) && (xCord >= 2) && (yCord >= 2) && (!IsOccupied(xCord - 2, yCord - 2)))
+                                    return true;
+                                if ((gamepiece.posX == xCord + 1) && (gamepiece.posY == yCord - 1) && IsOccupied(xCord + 1, yCord - 1) && (xCord <= 5) && (yCord >= 2) && (!IsOccupied(xCord + 2, yCord - 2)))
+                                    return true;
+                            }
+                        }
+                    }
+                }
+                else continue;
+            }
+            return false;
+        }
+
+        public bool ThisPieceCanCapture(int xCord, int yCord, int playerNumber)
+        {
+            foreach (GamePiece playerGamePiece in GamePiece.AllGamePieces)
+            {
+                // IF NON KINGS
+                    //player 1
+                if ((playerGamePiece.posX == xCord) && (playerGamePiece.posY == yCord) && (playerGamePiece.isKing == false) && (playerGamePiece.ownedBy == 1))
+                {
+                    foreach (GamePiece gamepiece in GamePiece.AllGamePieces)
+                    {
+                        if (gamepiece.ownedBy != playerNumber)
+                        {
+
+                            if ((gamepiece.posX == xCord - 1) && (gamepiece.posY == yCord - 1) && IsOccupied(xCord - 1, yCord - 1) && (xCord >= 2) && (yCord >= 2) && (!IsOccupied(xCord - 2, yCord - 2)))
+                                return true;
+                            if ((gamepiece.posX == xCord + 1) && (gamepiece.posY == yCord - 1) && IsOccupied(xCord + 1, yCord - 1) && (xCord <= 5) && (yCord >= 2) && (!IsOccupied(xCord + 2, yCord - 2)))
+                                return true;
+                        }
+                    }
+                }
+                    //player 2
+                else if ((playerGamePiece.posX == xCord) && (playerGamePiece.posY == yCord) && (playerGamePiece.isKing == false) && (playerGamePiece.ownedBy == 2))
+                {
+                    foreach (GamePiece gamepiece in GamePiece.AllGamePieces)
+                    {
+                        if (gamepiece.ownedBy != playerNumber)
+                        {
+                            if ((gamepiece.posX == xCord - 1) && (gamepiece.posY == yCord + 1) && IsOccupied(xCord - 1, yCord + 1) && (xCord >= 2) && (yCord <= 5) && (!IsOccupied(xCord - 2, yCord + 2)))
+                                return true;
+                            if ((gamepiece.posX == xCord + 1) && (gamepiece.posY == yCord + 1) && IsOccupied(xCord + 1, yCord + 1) && (xCord <= 5) && (yCord <= 5) && (!IsOccupied(xCord + 2, yCord + 2)))
+                                return true;
+                        }
+                    }
+                    }
+                // IF KINGS
+                if ((playerGamePiece.posX == xCord) && (playerGamePiece.posY == yCord) && (playerGamePiece.isKing == true))
+                {
+                    foreach (GamePiece gamepiece in GamePiece.AllGamePieces)
+                    {
+                        if (gamepiece.ownedBy != playerNumber)
+                        {
+
+                            if ((gamepiece.posX == xCord - 1) && (gamepiece.posY == yCord - 1) && IsOccupied(xCord - 1, yCord - 1) && (xCord >= 2) && (yCord >= 2) && (!IsOccupied(xCord - 2, yCord - 2)))
+                                return true;
+                            if ((gamepiece.posX == xCord + 1) && (gamepiece.posY == yCord - 1) && IsOccupied(xCord + 1, yCord - 1) && (xCord <= 5) && (yCord >= 2) && (!IsOccupied(xCord + 2, yCord - 2)))
+                                return true;
+                            if ((gamepiece.posX == xCord - 1) && (gamepiece.posY == yCord + 1) && IsOccupied(xCord - 1, yCord + 1) && (xCord >= 2) && (yCord <= 5) && (!IsOccupied(xCord - 2, yCord + 2)))
+                                return true;
+                            if ((gamepiece.posX == xCord + 1) && (gamepiece.posY == yCord + 1) && IsOccupied(xCord + 1, yCord + 1) && (xCord <= 5) && (yCord <= 5) && (!IsOccupied(xCord + 2, yCord + 2)))
+                                return true;
+                        }
+                    }
+                }
+
+                else continue;
+            }
+            return false;
+        }
     }
 }
+
+
 

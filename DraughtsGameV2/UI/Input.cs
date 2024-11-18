@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace DraughtsGameV2.UI
 {
-        public static class Input
+        public class Input
         {
-            /// <summary>
-            /// accepts an input of coordinates on the board
-            /// </summary>
-            public static void GetCoordinates(out int xCord, out int yCord)
+        bool rulesVisible = true;
+        /// <summary>
+        /// accepts an input of coordinates on the board
+        /// </summary>
+        public void GetCoordinates(out int xCord, out int yCord)
             {
                 xCord = 0;
                 yCord = 0;
@@ -19,6 +20,20 @@ namespace DraughtsGameV2.UI
                 {
                     Console.SetCursorPosition(1, 21);
                     string input = Console.ReadLine();
+                if (input == "r" || input == "R")
+                {
+                    if (rulesVisible)
+                    {
+                        UIManager.CollapseRules();
+                        rulesVisible = false;
+                    }
+                    else if (!rulesVisible)
+                    {
+                        UIManager.DisplayRules();
+                        rulesVisible = true;
+                    }
+                }
+
                     Console.SetCursorPosition(1, 21);
                     Console.WriteLine("              ");
 
@@ -31,6 +46,10 @@ namespace DraughtsGameV2.UI
                         Console.WriteLine("                                                 ");
                         continue;
                     }
+
+                {
+
+                }
 
                     string xPosString = input.Substring(0, 1);
                     string yPosString = input.Substring(1);
@@ -62,13 +81,13 @@ namespace DraughtsGameV2.UI
             }
             /// <summary>
             /// accepts an input of either 1, 3, 7, or 9
-            /// </summary>
-            public static int MoveToPos()
+            /// </summary>f
+            public int MoveToPos()
             {
                 int output;
                 while (true)
                 {
-                    Console.SetCursorPosition(1, 23);
+                    Console.SetCursorPosition(1, 22);
                     Console.WriteLine(@"
       7       9
        \     /
@@ -81,8 +100,8 @@ namespace DraughtsGameV2.UI
 
                         Console.SetCursorPosition(1, 21);
                         Console.WriteLine("              ");
-                        return output;
-                        Console.SetCursorPosition(1, 23);
+                        
+                        Console.SetCursorPosition(1, 22);
                         Console.WriteLine(@"
                       
                       
@@ -90,7 +109,8 @@ namespace DraughtsGameV2.UI
                      
                        ");
                         Console.SetCursorPosition(1, 22);
-                        break;
+                    return output;
+                      
                     }
                     else
                         Console.SetCursorPosition(1, 22);

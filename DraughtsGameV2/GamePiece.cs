@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace DraughtsGameV2
 {
-    internal class GamePiece
+    public class GamePiece
     {
         public int posX;
         public int posY;
         public int ownedBy;
-        bool isKing;
+        public bool isKing;
         public bool isActive;
         public int arrayNumber;
 
@@ -27,6 +27,18 @@ namespace DraughtsGameV2
             isActive = false;
         }
 
+        public void CheckKing()
+        {
+            if (ownedBy == 1 && posY == 0) 
+            {
+                isKing = true;
+            }
+           
+            if (ownedBy == 2 && posY == 7)
+            {
+                isKing = true;
+            }
+        }
         public void SetLocation(int x, int y)
         {
             posX = x; 
@@ -38,6 +50,8 @@ namespace DraughtsGameV2
         {
             return AllGamePieces;
         }
+
+
     }
 
   
